@@ -21,10 +21,10 @@
     forAllSystems = f: l.genAttrs supportedSystems
       (system: f system (nixpkgs.legacyPackages.${system}));
 
-  in {
+  in rec {
 
-    defaultPackage = forAllSystems
-      (system: pkgs: import ./default.nix {
+    packages = forAllSystems
+      (system: pkgs: { hnix = import ./default.nix {
         inherit pkgs;
         withHoogle = true;
         compiler = "ghc8107";
@@ -33,7 +33,9 @@
           chmod -R +w $out
           cp -r ${nix} $out/data/nix
         '';
-      });
+      }; });
+
+    defaultPackage."x86_64-linux" = packages."x86_64-linux".hnix;
 
     devShell = forAllSystems (system: pkgs: self.defaultPackage.${system}.env);
   };
